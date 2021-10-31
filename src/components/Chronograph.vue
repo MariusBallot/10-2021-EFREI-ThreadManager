@@ -40,7 +40,7 @@ export default {
     },
 
     mounted() {
-        const MTMdoable = MainThreadManager.doablility(this.threads);
+        const MTMdoable = MainThreadManager.CPUCharge(this.threads);
         this.doable = MTMdoable[1];
         this.CPUCharge = MTMdoable[0].toFixed(3);
 

@@ -36,9 +36,8 @@ class MainThreadManager {
         }
     }
 
-    doablility(threadsdata) {
+    CPUCharge(threadsdata) {
         let flag = false
-        //const URM = 1 / (Math.pow(2, threadsdata.length) - 1)
         let U = 0
         threadsdata.forEach(thread => {
             U += thread.cost / thread.period
@@ -53,15 +52,18 @@ class MainThreadManager {
         this.threadsData = threadsData
         this.ctx = canvas.getContext("2d")
         canvas.width = window.innerWidth
-        canvas.height = 800
+        canvas.height = threadsData.length * 100
+        canvas.style = `height: ${threadsData.length * 100}px`
 
+        let bpMult = Math.ceil(window.innerWidth / (this.busyPeriod * this.params.thread.step))
 
         //ThreadZone hydration
         threadsData.forEach((thread, j) => {
             this.threadZones[j] = []
 
+
             let zId = 0
-            for (let i = 0; i < this.busyPeriod; i += thread.deadline) {
+            for (let i = 0; i < this.busyPeriod * bpMult; i += thread.deadline) {
                 const t = {
                     zoneId: zId,
                     start: thread.period * zId,
@@ -78,8 +80,7 @@ class MainThreadManager {
         });
 
         //Time loop
-        // for (let i = 0; i < this.busyPeriod; i++) {
-        for (let t = 0; t < this.busyPeriod; t++) {
+        for (let t = 0; t < this.busyPeriod * bpMult; t++) {
 
             //Check if thread zone is active
             for (let j = 0; j < threadsData.length; j++) {
@@ -95,8 +96,11 @@ class MainThreadManager {
             //Check Priority
             let prioTask = null
             let prevStop = null
+            console.log("here")
             for (let j = 0; j < threadsData.length; j++) {
+
                 this.threadZones[j].forEach((zone, h) => {
+
                     if (zone.active && !zone.done) {
                         if (prevStop == null || prevStop > zone.stop) {
                             prioTask = j
@@ -107,18 +111,21 @@ class MainThreadManager {
                 });
             }
 
-            //Hydrate executions array
-            this.executions.push({ task: prioTask, pos: t })
+            if (prioTask != null) {
 
-            //Check if zone is done (As no more cost to put in exectutions)
-            this.threadZones[prioTask].forEach((zone, h) => {
-                if (zone.active && !zone.done) {
-                    zone.cost--
-                    if (zone.cost == 0)
-                        zone.done = true
-                }
+                //Hydrate executions array
+                this.executions.push({ task: prioTask, pos: t })
 
-            });
+                //Check if zone is done (As no more cost to put in exectutions)
+                this.threadZones[prioTask].forEach((zone, h) => {
+                    if (zone.active && !zone.done) {
+                        zone.cost--
+                        if (zone.cost == 0)
+                            zone.done = true
+                    }
+
+                });
+            }
 
         }
 
