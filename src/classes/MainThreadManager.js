@@ -5,16 +5,14 @@ class MainThreadManager {
         this.params = {
             thread: {
                 height: 60,
-                step: 50,
+                step: 20,
                 width: window.innerWidth - 200,
             },
             threadStep: 100
         }
 
-        this.deadlines = []
-        this.activePeriodTracker = [0, 0, 0]
-
-        this.costTracker = []
+        this.busyPeriod
+        this.threadZones = []
         this.executions = []
     }
 
@@ -23,7 +21,6 @@ class MainThreadManager {
         threadsData.forEach(thread => {
             prevW += thread.cost
         });
-        console.log(prevW)
 
         for (let i = 1; i < 20; i++) {
             let currW = 0
@@ -32,8 +29,8 @@ class MainThreadManager {
             });
 
             if (currW == prevW) {
-                console.log("busy Period Found", i)
-                return i
+                this.busyPeriod = prevW
+                return prevW
             }
             prevW = currW
         }
@@ -58,67 +55,74 @@ class MainThreadManager {
         canvas.width = window.innerWidth
         canvas.height = 800
 
+        //ThreadZone hydration
+        threadsData.forEach((thread, j) => {
+            this.threadZones[j] = []
 
-        this.threadsData.forEach((thread, i) => {
-            for (let j = 0; j < 10; j++) {
-                this.costTracker[i] = thread.cost
-                const dl = {
-                    task: i,
-                    pos: j * thread.period + thread.deadline,
-                    open: false,
-                    done: false
+            let zId = 0
+            for (let i = 0; i < this.busyPeriod; i += thread.deadline) {
+                const t = {
+                    zoneId: zId,
+                    start: thread.period * zId,
+                    stop: 0,
+                    active: false,
+                    cost: thread.cost,
+                    done: false,
                 }
-                if (j == 0)
-                    dl.open = true
-                this.deadlines.push(dl)
+                t.stop = t.start + thread.deadline - 1
+                this.threadZones[j].push(t)
+
+                zId++
             }
         });
 
+        //Time loop
+        // for (let i = 0; i < this.busyPeriod; i++) {
+        for (let i = 0; i < this.busyPeriod; i++) {
 
+            //Check if thread zone is active
+            for (let j = 0; j < threadsData.length; j++) {
+                this.threadZones[j].forEach((zone, h) => {
+                    if (i >= zone.start && i <= zone.stop)
+                        zone.active = true
+                    else {
+                        zone.active = false
+                    }
+                });
+            }
 
-
-        for (let currPos = 0; currPos < 100; currPos++) {
-
-            this.threadsData.forEach((thread, i) => {
-                if (currPos >= thread.period * this.activePeriodTracker[i] && currPos < thread.period * this.activePeriodTracker[i] + thread.deadline) {
-                    let dlFlags = [false, false, false]
-                    this.deadlines.forEach(dl => {
-                        if (dl.task == i && !dl.done) {
-                            if (!dlFlags[dl.task]) {
-                                dl.open = true
-                                dlFlags[dl.task] = true
-                            }
-                        }
-                    });
-                }
-            });
-
-            let taskPrio = null
-            let smallPos = null
-            this.deadlines.forEach(dl => {
-                if (smallPos == null || smallPos > dl.pos) {
-                    if (dl.open && !dl.done) {
-                        smallPos = dl.pos
-                        taskPrio = dl.task
-                        this.costTracker[dl.task] -= 1
-                        if (this.costTracker[dl.task] <= 0) {
-                            this.costTracker[dl.task] = this.threadsData[dl.task].deadline
-                            dl.done = true
-                            dl.open = false
-                            this.activePeriodTracker[dl.task]++
+            //Check Priority
+            let prioTask = null
+            let prevStop = null
+            for (let j = 0; j < threadsData.length; j++) {
+                this.threadZones[j].forEach((zone, h) => {
+                    if (zone.active && !zone.done) {
+                        if (prevStop == null || prevStop > zone.stop) {
+                            prioTask = j
+                            prevStop = zone.stop
                         }
                     }
+
+                });
+            }
+
+            //Hydrate executions array
+            this.executions.push({ task: prioTask, pos: i })
+
+            //Check if zone is done (As no more cost to put in exectutions)
+            this.threadZones[prioTask].forEach((zone, h) => {
+                if (zone.active && !zone.done) {
+                    zone.cost--
+                    if (zone.cost == 0)
+                        zone.done = true
                 }
+
             });
 
-            let exe = {
-                task: taskPrio,
-                pos: currPos
-            }
-            this.executions.push(exe)
         }
 
         console.log(this.executions)
+
 
         this.threadsData.forEach((thread, i) => {
             new Thread(this.ctx, i, thread, this.executions, this.params)
