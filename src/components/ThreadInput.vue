@@ -5,15 +5,29 @@
             <table>
                 <tr>
                     <td>Cost</td>
-                    <td><input ref="cost" type="text" /></td>
+                    <td>
+                        <input v-model="thread.cost" ref="cost" type="number" />
+                    </td>
                 </tr>
                 <tr>
                     <td>Deadline</td>
-                    <td><input ref="deadline" type="text" /></td>
+                    <td>
+                        <input
+                            v-model="thread.deadline"
+                            ref="deadline"
+                            type="number"
+                        />
+                    </td>
                 </tr>
                 <tr>
                     <td>Period</td>
-                    <td><input ref="period" type="text" /></td>
+                    <td>
+                        <input
+                            v-model="thread.period"
+                            ref="period"
+                            type="number"
+                        />
+                    </td>
                 </tr>
             </table>
             <button v-on:click="addThread">Add Thread</button>
@@ -40,6 +54,9 @@ export default {
                 deadline: parseInt(this.$refs.deadline.value),
                 period: parseInt(this.$refs.period.value),
             };
+            this.$refs.cost.value = null;
+            this.$refs.deadline.value = null;
+            this.$refs.period.value = null;
             this.$emit("threadAdded", data);
         },
     },

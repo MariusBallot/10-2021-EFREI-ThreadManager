@@ -1,9 +1,10 @@
 class Thread {
-    constructor(ctx, index, data, executions, params) {
+    constructor(ctx, index, data, executions, BP, params) {
         this.ctx = ctx
         this.index = index
         this.data = data
         this.executions = executions
+        this.BP = BP
         this.params = params
 
         this.ctx.save()
@@ -12,6 +13,7 @@ class Thread {
         this.drawPeriod()
         this.drawDeadline()
         this.drawExecutions()
+        this.drawBP()
         this.ctx.restore()
     }
 
@@ -81,6 +83,21 @@ class Thread {
                 }
             }
         });
+    }
+
+    drawBP() {
+
+        this.ctx.save()
+        this.ctx.beginPath();
+        this.ctx.translate(this.params.thread.step * this.BP, 0)
+        this.ctx.moveTo(0, 0);
+        this.ctx.lineTo(0, this.params.thread.height * 2);
+        this.ctx.strokeStyle = "green"
+        this.ctx.lineWidth = 3
+        this.ctx.stroke();
+        this.ctx.closePath()
+        this.ctx.restore()
+
     }
 
     bind() {

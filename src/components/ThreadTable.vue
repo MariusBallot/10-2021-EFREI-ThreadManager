@@ -13,17 +13,32 @@
                     </tr>
                     <tr v-for="(thread, i) in threads" :key="i">
                         <td>Thread {{ i }}</td>
-                        <td>{{ thread.cost }}</td>
-                        <td>{{ thread.deadline }}</td>
-                        <td>{{ thread.period }}</td>
+                        <td>
+                            <input type="number" v-model="thread.cost" />
+                        </td>
+                        <td>
+                            <input type="number" v-model="thread.deadline" />
+                        </td>
+                        <td>
+                            <input type="number" v-model="thread.period" />
+                        </td>
+                        <td v-if="i != 0">
+                            <button @click="deleteThread(i)">Delete</button>
+                        </td>
                     </tr>
                 </table>
             </div>
         </div>
-        <button v-if="!restartFlag" v-on:click="startChronograph">
+        <button
+            class="thread-table_start-button"
+            v-if="!restartFlag"
+            v-on:click="startChronograph"
+        >
             Start Chronograph
         </button>
-        <button v-else v-on:click="restart">Restart</button>
+        <button class="thread-table_start-button" v-else v-on:click="restart">
+            Restart
+        </button>
     </div>
 </template>
 
@@ -61,11 +76,15 @@ export default {
             this.threads.push(value);
         },
         startChronograph() {
+            console.log(this.threads);
             this.$emit("startChronograph", this.threads);
             this.restartFlag = true;
         },
         restart() {
             window.location.reload(false);
+        },
+        deleteThread(ind) {
+            this.threads.splice(ind, 1);
         },
     },
 };
@@ -92,7 +111,7 @@ export default {
         }
     }
 
-    button {
+    &_start-button {
         padding: 20px;
         margin: 20px 0;
     }

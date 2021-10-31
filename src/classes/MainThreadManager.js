@@ -55,6 +55,7 @@ class MainThreadManager {
         canvas.width = window.innerWidth
         canvas.height = 800
 
+
         //ThreadZone hydration
         threadsData.forEach((thread, j) => {
             this.threadZones[j] = []
@@ -125,7 +126,7 @@ class MainThreadManager {
 
 
         this.threadsData.forEach((thread, i) => {
-            new Thread(this.ctx, i, thread, this.executions, this.params)
+            new Thread(this.ctx, i, thread, this.executions, this.busyPeriod, this.params)
         });
 
     }
