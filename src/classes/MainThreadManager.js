@@ -79,12 +79,12 @@ class MainThreadManager {
 
         //Time loop
         // for (let i = 0; i < this.busyPeriod; i++) {
-        for (let i = 0; i < this.busyPeriod; i++) {
+        for (let t = 0; t < this.busyPeriod; t++) {
 
             //Check if thread zone is active
             for (let j = 0; j < threadsData.length; j++) {
                 this.threadZones[j].forEach((zone, h) => {
-                    if (i >= zone.start && i <= zone.stop)
+                    if (t >= zone.start && t <= zone.stop)
                         zone.active = true
                     else {
                         zone.active = false
@@ -108,7 +108,7 @@ class MainThreadManager {
             }
 
             //Hydrate executions array
-            this.executions.push({ task: prioTask, pos: i })
+            this.executions.push({ task: prioTask, pos: t })
 
             //Check if zone is done (As no more cost to put in exectutions)
             this.threadZones[prioTask].forEach((zone, h) => {
